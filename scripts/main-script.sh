@@ -44,9 +44,39 @@ read_iso_storage() {
   fi
 }
 
+detect_hardware() {
+  # determine pcie addresses
+  echo "detecting hardware"
+}
+
+detach_hardware() {
+  # detach hardware
+  echo "detaching hardware"
+}
+
+start_qemu() {
+  qemu-system-x86_64 -m 2048 -nic user -boot d -cdrom ./alpine-minirootfs-3.19.0-x86_64/opt/Fedora-KDE-Live-x86_64-39-1.5.iso -display sdl -enable-kvm
+}
+
+reattach_hardware() {
+  # reattach hardware
+  echo "reattaching hardware"
+}
+
+install_kaboot() {
+  # install kaboot
+  echo "installing kaboot"
+}
+
+install_packages() {
+  # install packages
+  echo "installing packages"
+}
+
 main () {
   mount_iso_storage
   read_iso_storage
+  detect_hardware
   detach_hardware
   start_qemu
   reattach_hardware
