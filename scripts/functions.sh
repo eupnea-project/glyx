@@ -14,5 +14,6 @@ reboot_device() {
   # display reboot message to user
   whiptail --title "Reboot" --msgbox "Rebooting..." 10 40
   # reboot the device after user pressed OK
+  # TODO: Uncomment next line
   # reboot
 }
