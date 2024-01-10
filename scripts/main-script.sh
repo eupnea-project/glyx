@@ -55,22 +55,41 @@ read_iso_storage() {
 }
 
 detect_hardware() {
-  # determine pcie addresses
-  echo "detecting hardware"
+  # determine if iommu is supported
+  if dmesg | grep -i "IOMMU enabled"; then
+      # check that only one gpu is present
+      if [ $(lspci | grep -c "VGA compatible controller") -gt 1 ]; then
+          error_and_reboot "More than one GPU detected"
+      fi
+      gpu_address=$(lspci | grep "VGA compatible controller" | cut -d' ' -f 1)
+      # check that address is not empty
+      if [ -z "$gpu_address" ]; then
+          error_and_reboot "GPU address not found"
+      fi
+  else
+      # prompt user to accept or reboot on cancel
+      if ! whiptail --title "Warning" --yesno "IOMMU is disabled. Performance will suffer. Continue anyways?" 10 40; then
+          reboot_device
+      fi
+      gpu_address="iommu_disabled"
+  fi
+
+  # calculate the amount of memory to allocate to the VM
+  total_mem=$(cat /proc/meminfo | grep "MemTotal" | awk '{print $2}')
+  vm_memory=$((total_mem * 80 / 100))
 }
 
-detach_hardware() {
-  # detach hardware
-  echo "detaching hardware"
-}
-
-start_qemu() {
-  qemu-system-x86_64 -m 2048 -nic user -boot d -cdrom ./alpine-minirootfs-3.19.0-x86_64/opt/Fedora-KDE-Live-x86_64-39-1.5.iso -display sdl -enable-kvm
-}
-
-reattach_hardware() {
-  # reattach hardware
-  echo "reattaching hardware"
+run_virtual_machine() {
+  if [ "$gpu_address" = "iommu_disabled" ]; then
+    qemu-system-x86_64 -nodefaults -enable-kvm -cpu host,kvm=off -display none -vga none -nographic -nic user -boot d \
+    -m "${vm_memory}kb" \
+    -cdrom "${iso_storage_mnt_point}${iso_file_name}"
+  else
+    qemu-system-x86_64 -nodefaults -enable-kvm -cpu host,kvm=off -display none -vga none -nographic -nic user -boot d \
+    -m "${vm_memory}kb" \
+    -device vfio-pci,host=$gpu_address,multifunction=on \
+    -cdrom "${iso_storage_mnt_point}${iso_file_name}"
+  fi
 }
 
 install_kaboot() {
