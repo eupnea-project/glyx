@@ -33,14 +33,29 @@ read_iso_storage() {
       for file in "$directory"/*; do
           # Add only filenames (not directories) to the array
           if [ -f "$file" ]; then
+              # check if file is an iso
+              if [[ "$file" != *.iso ]]; then
+                  continue
+              fi
               files+=("$(basename "$file")")
           fi
       done
-
-      # Print the list of filenames
-      printf '%s\n' "${files[@]}"
   else
-      error_and_reboot "Directory not found."
+      error_and_reboot "Iso storage directory not found?"
+  fi
+
+  # if more than one file is found, let the user choose one
+  if [ ${#files[@]} -gt 1 ]; then
+      # whiptail expects the array to be formatted like this: "tag" "item" "tag" "item" ...
+      # We dont have item descriptions, only tags -> add empty string items to list as descriptions
+      for ((i = ${#files[@]} - 1; i >= 0; i--)); do
+        files=("${files[@]:0:i+1}" "" "${files[@]:i+1}")
+      done
+
+      file=$(whiptail --noitem --nocancel --title "Choose an ISO file" --menu "Choose an ISO file" 20 40 10 "${files[@]}" 3>&1 1>&2 2>&3)
+
+  else # if only one file is found, use it
+      file="${files[0]}"
   fi
 }
 
