@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# GLOBAL VARS:
+iso_storage_mnt_point="/mnt/iso-storage/"
+
 # import functions file
 source functions.sh
 
@@ -12,25 +15,17 @@ trap crash_handler SIGTERM
 set -e
 set -o pipefail
 
-mount_iso_storage() {
+read_iso_storage() {
   # find and mount the second partition of the currently booted device
   # get the currently mounted device without partition number
   currently_mounted_device=$(mount | grep ' / ' | cut -d' ' -f 1 | sed 's/.$//')
   # mount the second partition of the currently booted device
   mount "${currently_mounted_device}2" /mnt/iso-storage || error_and_reboot "Failed mounting the iso storage"
-}
 
-read_iso_storage() {
-  # Navigate to the directory
-  directory="/mnt/iso-storage"
-
-  # Store filenames in an array
   files=()
-
-  # Check if the directory exists
-  if [ -d "$directory" ]; then
+  if [ -d "$iso_storage_mnt_point" ]; then
       # Loop through files in the directory and add them to the array
-      for file in "$directory"/*; do
+      for file in "$iso_storage_mnt_point"/*; do
           # Add only filenames (not directories) to the array
           if [ -f "$file" ]; then
               # check if file is an iso
@@ -52,10 +47,10 @@ read_iso_storage() {
         files=("${files[@]:0:i+1}" "" "${files[@]:i+1}")
       done
 
-      file=$(whiptail --noitem --nocancel --title "Choose an ISO file" --menu "Choose an ISO file" 20 40 10 "${files[@]}" 3>&1 1>&2 2>&3)
+      iso_file_name=$(whiptail --noitem --nocancel --title "Choose an ISO file" --menu "Choose an ISO file" 20 40 10 "${files[@]}" 3>&1 1>&2 2>&3)
 
   else # if only one file is found, use it
-      file="${files[0]}"
+      iso_file_name="${files[0]}"
   fi
 }
 
