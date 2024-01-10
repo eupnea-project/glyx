@@ -103,12 +103,10 @@ install_packages() {
 }
 
 main () {
-  mount_iso_storage
   read_iso_storage
+  prepare_target_storage
   detect_hardware
-  detach_hardware
-  start_qemu
-  reattach_hardware
+  run_virtual_machine
   install_kaboot
   install_packages
   reboot_device
