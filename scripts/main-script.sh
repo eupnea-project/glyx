@@ -54,6 +54,23 @@ read_iso_storage() {
   fi
 }
 
+prepare_target_storage() {
+  # list all storage devices and let user select one with whiptail
+  devices=()
+  while IFS= read -r line; do
+      devices+=("$line")
+  done < <(lsblk -d -n -p -o NAME,MODEL,SIZE)
+
+  # whiptail expects the array to be formatted like this: "tag" "item" "tag" "item" ...
+  # We dont have item descriptions, only tags -> add empty string items to list as descriptions
+  for ((i = ${#devices[@]} - 1; i >= 0; i--)); do
+    devices=("${devices[@]:0:i+1}" "" "${devices[@]:i+1}")
+  done
+
+  whiptail --title "Choose a target device" --menu "Choose a target device" 20 40 10 "${devices[@]}" 3>&1 1>&2 2>&3
+
+}
+
 detect_hardware() {
   # determine if iommu is supported
   if dmesg | grep -i "IOMMU enabled"; then
