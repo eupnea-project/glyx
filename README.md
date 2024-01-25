@@ -1,4 +1,4 @@
-# The Eupnea Project HAS BEEN DISCONTINUED
+# THE EUPNEA PROJECT HAS BEEN DISCONTINUED
 
 Please use one of the following projects instead:
 * MrChromebox's UEFI/RW_L (turn chromebook into almost a normal laptop): https://mrchromebox.tech/#fwscript
